@@ -23,42 +23,53 @@ runseedforthinteractive: seedForth seedForthInteractive.seed
 	./seed
 
 UNIXFLAVOUR=$(shell uname -s)
-EXT=asm
+EXT=S
 
-seedForth-i386.asm: seedForth-i386.pre preForth
-	cat seedForth-i386.pre | ./preForth >seedForth-i386.asm
+# seedForth-i386.asm: seedForth-i386.pre preForth
+# 	cat seedForth-i386.pre | ./preForth >seedForth-i386.asm
 
 # preForth connected to stdin - output to preForth.asm
-preForth.asm: preForth.pre preForth-i386-backend.pre load-i386-preForth.fs
+# preForth.asm: preForth.pre preForth-i386-backend.pre load-i386-preForth.fs
+# 	cat preForth-i386-rts.pre preForth-rts.pre preForth-i386-backend.pre preForth.pre \
+# 	    | $(HOSTFORTH) load-i386-preForth.fs >preForth.asm
+
+preForth.S: preForth.awk  preForth.pre preForth-i386-backend.pre
 	cat preForth-i386-rts.pre preForth-rts.pre preForth-i386-backend.pre preForth.pre \
-	    | $(HOSTFORTH) load-i386-preForth.fs >preForth.asm
+	    | ./preForth.awk  > $@
 
-preForth: preForth.$(UNIXFLAVOUR)
-	cp preForth.$(UNIXFLAVOUR) preForth
 
-%.asm: %.pre preForth preForth-i386-rts.pre preForth-rts.pre
+# preForth: preForth.$(UNIXFLAVOUR)
+# 	cp preForth.$(UNIXFLAVOUR) preForth
+
+# %.asm: %.pre preForth preForth-i386-rts.pre preForth-rts.pre
+# 	cat preForth-i386-rts.pre preForth-rts.pre $< | ./preForth >$@
+
+%.s : %.pre  preForth  preForth-i386-rts.pre preForth-rts.pre
 	cat preForth-i386-rts.pre preForth-rts.pre $< | ./preForth >$@
 
 %: %.$(UNIXFLAVOUR)
 	cp $< $@
 
 # assemble and link executable on linux
-%.Linux: %.asm
-	fasm $< $@.o
-	LDEMULATION=elf_i386 ld -arch i386 -o $@ \
-	   -dynamic-linker /lib32/ld-linux.so.2 \
-	   /usr/lib/i386-linux-gnu/crt1.o /usr/lib/i386-linux-gnu/crti.o \
-	   $@.o \
-	   -lc /usr/lib/i386-linux-gnu/crtn.o
-	# rm $@.o
+%.Linux : %.S
+	gcc -m32 -static -nostdlib -o $@ $<
+
+# %.Linux: %.asm
+# 	fasm $< $@.o
+# 	LDEMULATION=elf_i386 ld -arch i386 -o $@ \
+# 	   -dynamic-linker /lib32/ld-linux.so.2 \
+# 	   /usr/lib/i386-linux-gnu/crt1.o /usr/lib/i386-linux-gnu/crti.o \
+# 	   $@.o \
+# 	   -lc /usr/lib/i386-linux-gnu/crtn.o
+# 	# rm $@.o
 
 # assemble and link executable on MacOS
-%.Darwin: %.asm
-	fasm $< $@.o
-	objconv -fmacho32 -nu $@.o $@_m.o
-	ld -arch i386 -macosx_version_min 10.6 -o $@ \
-	  $@_m.o /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/crt1.o /usr/lib/libc.dylib
-	# rm $@.o $@_m.o
+# %.Darwin: %.asm
+# 	fasm $< $@.o
+# 	objconv -fmacho32 -nu $@.o $@_m.o
+# 	ld -arch i386 -macosx_version_min 10.6 -o $@ \
+# 	  $@_m.o /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/crt1.o /usr/lib/libc.dylib
+# 	# rm $@.o $@_m.o
 
 # run preForth on its own source code to perform a bootstrap 
 # should produce identical results
@@ -101,4 +112,4 @@ seedForth: seedForth.$(UNIXFLAVOUR)
 
 .PHONY=clean
 clean:
-	rm -f *.asm *.o *.fas *.s *.c *.Darwin *.Linux preForthdemo preForth forth seedForth seedForthDemo.seed seedForthInteractive.seed
+	rm -f *.asm *.S *.o *.s *.Darwin *.Linux preForthdemo preForth forth seedForth seedForthDemo.seed seedForthInteractive.seed
