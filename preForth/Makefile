@@ -8,19 +8,19 @@ HOSTFORTH=gforth
 # HOSTFORTH=sf   # SwiftForth >3.7
 # ------------------------------------------------------------------------
 
-.PHONY=all
-all: preForth seedForth seedForthDemo.seed seedForthInteractive.seed
+# .PHONY=all
+# all: preForth seedForth seedForthDemo.seed seedForthInteractive.seed
 
-.PHONY=test
-test: runseedforthdemo runseedforthinteractive
+# .PHONY=test
+# test: runseedforthdemo runseedforthinteractive
 
-.PHONY=runseedforthdemo
-runseedforthdemo: seedForth seedForthDemo.seed
-	cat seedForthDemo.seed | ./seedForth
+# .PHONY=runseedforthdemo
+# runseedforthdemo: seedForth seedForthDemo.seed
+# 	cat seedForthDemo.seed | ./seedForth
 
-.PHONY=runseedfortinteractive
-runseedforthinteractive: seedForth seedForthInteractive.seed
-	./seed
+# .PHONY=runseedfortinteractive
+# runseedforthinteractive: seedForth seedForthInteractive.seed
+# 	./seed
 
 UNIXFLAVOUR=$(shell uname -s)
 EXT=S
@@ -33,10 +33,11 @@ EXT=S
 # 	cat preForth-i386-rts.pre preForth-rts.pre preForth-i386-backend.pre preForth.pre \
 # 	    | $(HOSTFORTH) load-i386-preForth.fs >preForth.asm
 
-preForth.S: preForth.awk  preForth.pre preForth-i386-backend.pre
+preForth.S: preForth.awk  preForth-i386-rts.pre preForth-rts.pre preForth-i386-backend.pre preForth.pre 
 	cat preForth-i386-rts.pre preForth-rts.pre preForth-i386-backend.pre preForth.pre \
 	    | ./preForth.awk  > $@
 
+preForth : preForth.S
 
 # preForth: preForth.$(UNIXFLAVOUR)
 # 	cp preForth.$(UNIXFLAVOUR) preForth
@@ -44,15 +45,15 @@ preForth.S: preForth.awk  preForth.pre preForth-i386-backend.pre
 # %.asm: %.pre preForth preForth-i386-rts.pre preForth-rts.pre
 # 	cat preForth-i386-rts.pre preForth-rts.pre $< | ./preForth >$@
 
-%.s : %.pre  preForth  preForth-i386-rts.pre preForth-rts.pre
+%.S : %.pre  preForth  preForth-i386-rts.pre preForth-rts.pre
 	cat preForth-i386-rts.pre preForth-rts.pre $< | ./preForth >$@
 
-%: %.$(UNIXFLAVOUR)
-	cp $< $@
+# %: %.$(UNIXFLAVOUR)
+#	cp $< $@
 
 # assemble and link executable on linux
-%.Linux : %.S
-	gcc -m32 -static -nostdlib -o $@ $<
+% : %.S
+	gcc -g -m32 -static -nostdlib -o $@ $<
 
 # %.Linux: %.asm
 # 	fasm $< $@.o

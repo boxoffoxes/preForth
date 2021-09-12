@@ -1,18 +1,46 @@
 #!/usr/bin/awk -f
 BEGIN {
 	dsz=0
+	tr["\\"] = "B"
+	tr[":"] = "C"
+	tr["."] = "D"
+	tr["="] = "E"
+	tr["["] = "F"
+	tr[">"] = "G"
+	tr["]"] = "H"
+	# 1 and 2 are fine in gas identifiers...
+	tr["/"] = "K"
+	tr["<"] = "L"
+	tr["-"] = "M"
+	tr["#"] = "N"
+	# ...so is 0
+	tr["+"] = "P"
+	tr["?"] = "Q"
+	tr["\""] = "R"
+	tr["!"] = "S"
+	tr["*"] = "T"
+	tr["("] = "U"
+	tr["|"] = "V"
+	tr[","] = "W"
+	tr[")"] = "Y"
+	tr[";"] = "Z"
+
 }
 function safe(name) {
 	if (name ~ /^[a-zA-Z_][a-zA-Z0-9]*$/)
 		return name
-	else
+	else {
 		return "__sym_" dsz++
+	}
 }
 function call(id) {
 	printf("\t.int %s  # %s\n", dict[id], id)
 }
 function lit(v) {
-	printf("\t.int lit, %s\n", v)
+	printf("\t.int lit,%s\n", v)
+}
+function tail(id) {
+	printf("\t.int lit,body_%s, %s  # tail-call %s\n", dict[id], dict[">r"], id)
 }
 function def(name, type) {
 	sym = safe(name)
@@ -36,17 +64,16 @@ function def(name, type) {
 			continue
 		} else if (dict[$i]) {
 			call($i)
+		} else if ($i ~ /^pre/) {
+			copy=1
+			next
 		} else {
 			switch ($i) {
 				case "code":
 					i++
 					def($i, "code")
-					# fallthrough!
-				case "prelude":
-					# fallthrough!
-				case "prefix":
 					copy=1
-					next
+					# fallthrough!
 				case "\\":
 					next
 				case "(":
@@ -54,8 +81,7 @@ function def(name, type) {
 					break
 				case "tail":
 					i++
-					lit(dict[$i])
-					call(">r")
+					tail($i)
 					break
 				case ":":
 					i++

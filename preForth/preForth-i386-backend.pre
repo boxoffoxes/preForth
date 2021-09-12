@@ -45,14 +45,14 @@
 \ We define convenience words of the form ."xxx" to output xxx and >"xxx" to output xxx on a new line indented by a tab.
 
 : ."dd" ( -- )
-	'.' emit 'i' emit 'n' emit 't' space ;
+	'.' emit 'i' emit 'n' emit 't' emit  space ;
 \    'D' emit 'D' emit space ;
 
 : >"dd" ( -- )
     cr tab ."dd" ;
 
 : ."db" ( -- )
-	'.' emit 'b' emit 'y' emit 't' emit 'e' space ;
+	'.' emit 'b' emit 'y' emit 't' emit 'e' emit  space ;
 \    'D' emit 'B' emit space ;
 
 : >"db" ( -- )

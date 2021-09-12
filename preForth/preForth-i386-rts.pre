@@ -33,11 +33,13 @@ rstck: .space 16 * 4
 .endm
 
 .macro code sym name
-\sym:	.int .+4
+\sym:	.int body_\sym
+body_\sym:
 .endm
 
 .macro word sym name
 \sym: .int _nest
+body_\sym:
 .endm
 
 
@@ -69,7 +71,7 @@ code bye ( -- )
 
 code emit ( c -- )
 	mov $SYS_write, %eax
-	mov $0, %ebx
+	mov $1, %ebx
 	mov %esp, %ecx
 	mov $1, %edx
 	int $0x80
@@ -80,13 +82,13 @@ code emit ( c -- )
 code key ( -- c )
 	push $0
 	mov $SYS_read, %eax
-	mov $1, %ebx
+	mov $0, %ebx
 	mov %esp, %ecx
 	mov $1, %edx
 	int $0x80
 	xor %ecx, %ecx
-	test %eax, %eax
-	jnz 1f
+	cmp $0, %eax
+	jg 1f
 	movl $4, (%esp) # ascii EOT char
 1:	next
 ;
