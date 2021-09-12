@@ -31,6 +31,16 @@
 : > ( n1 n2 -- flag )
    swap < ;
 
+
+\ these are "additional stack operators". Moved to
+\ eliminate forward dependencies in "case?"
+: over ( x1 x2 -- x1 x2 x1 )
+   >r dup r> swap ;
+
+: 2drop ( x1 x2 -- )
+   drop drop ;
+
+
 \ case? compares the value x to y. If they match, return true. If not keep x and return false.
 : case? ( x y -- tf | x ff )
     over = dup 0= ?exit  2drop -1 ; 
@@ -39,17 +49,11 @@
 \ additional stack operators
 \ --------------------------
 
-: over ( x1 x2 -- x1 x2 x1 )
-   >r dup r> swap ;
-
 : rot ( x1 x2 x3 -- x2 x3 x1 )
    >r swap r> swap ;
 
 : nip ( x1 x2 -- x2 )
    swap drop ;
-
-: 2drop ( x1 x2 -- )
-   drop drop ;
 
 : pick ( xn-1 ... x0 i -- xn-1 ... x0 xi )
     over swap ?dup 0= ?exit nip swap >r 1- pick r> swap ;  
