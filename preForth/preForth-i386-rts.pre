@@ -52,8 +52,8 @@ _start:
 	next
 
 main1:
-	.int cold
-	.int bye
+	.int _cold
+	.int _bye
 
 _nest:
 	lea -4(%ebp), %ebp
@@ -71,7 +71,7 @@ code bye ( -- )
 
 code emit ( c -- )
 	mov $SYS_write, %eax
-	mov $1, %ebx
+	mov $1, %ebx   # stdout
 	mov %esp, %ecx
 	mov $1, %edx
 	int $0x80
@@ -80,14 +80,13 @@ code emit ( c -- )
 ;
 
 code key ( -- c )
-	push $0
 	mov $SYS_read, %eax
-	mov $0, %ebx
+	mov $0, %ebx  # stdin
+	push %ebx     # 1 cell buf on stack
 	mov %esp, %ecx
 	mov $1, %edx
 	int $0x80
-	xor %ecx, %ecx
-	cmp $0, %eax
+	cmp $0, %eax  # contains # chars read
 	jg 1f
 	movl $4, (%esp) # ascii EOT char
 1:	next
@@ -101,8 +100,9 @@ code dup ( x -- x x )
 ;
 
 code swap ( x y -- y x )
+	pop %edx
 	pop %eax
-	xchg %eax, (%esp)
+	push %edx
 	push %eax
 	next
 ;
@@ -114,14 +114,17 @@ code drop ( x -- )
 
 code 0< ( x -- flag )
 	pop %eax
-	cdq
-	push %edx
+	or %eax, %eax
+	mov $0, %eax
+	jns 1f
+	dec %eax
+1:	push %eax
 	next
 ;
 
 code ?exit ( f -- )
 	pop %eax
-	test %eax, %eax
+	or %eax, %eax
 	jz 1f
 	mov (%ebp), %esi
 	lea 4(%ebp), %ebp
@@ -130,23 +133,23 @@ code ?exit ( f -- )
 
 code >r ( x -- ) ( R -- x )
 	pop %eax
-	xchg %esp, %ebp
-	push %eax
-	xchg %esp, %ebp
+	lea -4(%ebp), %ebp
+	mov %eax, (%ebp)
 	next
 ;
 
 code r> ( R x -- ) ( -- x )
-	xchg %esp, %ebp
-	pop %eax
-	xchg %esp, %ebp
+	mov (%ebp), %eax
+	lea 4(%ebp), %ebp
 	push %eax
 	next
 ;
 
 code - ( x1 x2 -- x3 )
+	pop %edx
 	pop %eax
-	sub %eax, (%esp)
+	sub %edx, %eax
+	push %eax
 	next
 ;
 

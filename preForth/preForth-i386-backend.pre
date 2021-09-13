@@ -120,7 +120,7 @@
 
 \ output string as comment
 : ,comment ( S -- )
-    cr tab ';' emit  space show ;
+    cr tab '#' emit  space show ;  \ gas comment character is # not ;
 
 \ create a new symbolic label
 : label ( S -- )
