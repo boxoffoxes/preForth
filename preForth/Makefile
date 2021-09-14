@@ -51,9 +51,10 @@ preForth : preForth.S
 # %: %.$(UNIXFLAVOUR)
 #	cp $< $@
 
-# assemble and link executable on linux
+# assemble and link executable on linux. --build-id=none is required if we want 
+# to compare executables during bootstrapping
 % : %.S
-	gcc -g -m32 -static -nostdlib -o $@ $<
+	gcc -g -m32 -static -nostdlib -Wl,--build-id=none -o $@ $<
 
 # %.Linux: %.asm
 # 	fasm $< $@.o
@@ -77,7 +78,9 @@ preForth : preForth.S
 bootstrap: preForth preForth-i386-backend.pre preForth.pre preForth.$(EXT)
 	cat preForth-i386-rts.pre preForth-rts.pre preForth-i386-backend.pre preForth.pre\
            | ./preForth >preForth1.$(EXT)
-	cmp preForth.$(EXT) preForth1.$(EXT)
+	make preForth1
+	strip -s preForth preForth1
+	cmp preForth preForth1
 
 # preForth connected to stdin - output to stdout
 .PHONY=visible-bootstrap

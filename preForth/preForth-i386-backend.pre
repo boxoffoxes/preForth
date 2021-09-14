@@ -120,7 +120,7 @@
 
 \ output string as comment
 : ,comment ( S -- )
-    cr tab '#' emit  space show ;  \ gas comment character is # not ;
+    cr tab '/' emit '*' emit  space show space  '*' emit '/' emit ;  \ gas comment character is # not ;
 
 \ create a new symbolic label
 : label ( S -- )
@@ -136,7 +136,7 @@
 
 : ,code ( S -- )
     _dup label
-    ,codefield ;
+    ,codefield cr ;
 
 : ,end-code ( -- )
   cr ;
@@ -153,10 +153,10 @@
    '>' 'r' 2 ,>word ;
 
 : ."done" ( -- )
-    ';' emit space 'd' emit 'o' emit 'n' emit 'e' emit ;
+    '#' emit space 'd' emit 'o' emit 'n' emit 'e' emit ;
 
 : ."last:" ( -- )
-    ';' emit space 'l' emit 'a' emit 's' emit 't' emit ':' emit space ;
+    '#' emit space 'l' emit 'a' emit 's' emit 't' emit ':' emit space ;
 
 : ,end ( S -- )
     cr ."last:" alter show

@@ -1,6 +1,7 @@
 #!/usr/bin/awk -f
 BEGIN {
 	dsz=0
+	tr["'"] = "B"
 	tr["\\"] = "B"
 	tr[":"] = "C"
 	tr["."] = "D"
@@ -9,11 +10,14 @@ BEGIN {
 	tr[">"] = "G"
 	tr["]"] = "H"
 	# 1 and 2 are fine in gas identifiers...
+	tr["1"] = "I"
+	tr["2"] = "J"
 	tr["/"] = "K"
 	tr["<"] = "L"
 	tr["-"] = "M"
 	tr["#"] = "N"
 	# ...so is 0
+	tr["0"] = "O"
 	tr["+"] = "P"
 	tr["?"] = "Q"
 	tr["\""] = "R"
@@ -27,14 +31,15 @@ BEGIN {
 
 }
 function safe(name) {
-	if (name ~ /^[a-zA-Z_][a-zA-Z0-9]*$/)
-		return "_" name
-	else {
-		return "__sym_" dsz++
+	sname = ""
+	for (j=1; j<=length(name); j++) {
+		c = substr(name, j, 1)
+		sname = sname ( tr[c] == "" ? c : tr[c] )
 	}
+	return "_" sname
 }
 function call(id) {
-	printf("\t.int %s  # %s\n", dict[id], id)
+	printf("\t.int %s\n", dict[id])
 }
 function lit(v) {
 	printf("\t.int _lit,%s\n", v)
@@ -48,7 +53,7 @@ function def(name, type) {
 	inter = "_nest"
 	if (type=="code")
 		inter = sym "X"
-	printf("\n%s: .int %s   # %s \n%sX: \n", sym, inter, name, sym)
+	printf("\n\t/* %s */\n%s:\t.int %s\n%sX:\t\n", name, sym, inter, sym)
 }
 {
 	if (copy) {
