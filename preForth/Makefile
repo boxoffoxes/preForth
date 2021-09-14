@@ -116,4 +116,4 @@ seedForth: seedForth.$(UNIXFLAVOUR)
 
 .PHONY=clean
 clean:
-	rm -f *.asm *.S *.o *.s *.Darwin *.Linux preForthdemo preForth forth seedForth seedForthDemo.seed seedForthInteractive.seed
+	rm -f *.asm *.S *.o *.s *.Darwin *.Linux preForthdemo preForth preForth1 forth seedForth seedForthDemo.seed seedForthInteractive.seed
